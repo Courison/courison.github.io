@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>帝江号排班系统</title>
+    <script src="/vendor/marked.min.js"></script>
+    <script src="/vendor/html2canvas.min.js"></script>
+
+    <link rel="stylesheet" href="/assets/css/01-base.css?v=20260919">
+    <link rel="stylesheet" href="/assets/css/02-layout.css?v=20260919">
+    <link rel="stylesheet" href="/assets/css/03-components.css?v=20260919">
+    <link rel="stylesheet" href="/assets/css/04-schedule.css?v=20260919">
+    <link rel="stylesheet" href="/assets/css/05-data-settings.css?v=20260919">
+    <link rel="stylesheet" href="/assets/css/06-import-wizard.css?v=20260920">
+    <link rel="stylesheet" href="/assets/css/07-talent.css?v=20260919">
+    <link rel="stylesheet" href="/assets/css/08-feedback-changelog.css?v=20260919">
+    <link rel="stylesheet" href="/assets/css/09-responsive.css?v=20260919">
+    <link rel="stylesheet" href="/assets/css/10-pet.css?v=20260920">
+</head>
+<body>
+
+<header class="app-header">
+    <button class="hamburger" id="toggleSidebarBtn">☰</button>
+    <h1>🏭 帝江号排班系统</h1>
+    <div class="header-right">
+        <span class="header-id" id="headerUserId">ID: 游客</span>
+        <button class="header-cloud-btn" id="dataSettingsBtn">⚙️ 干员数据设置</button>
+    </div>
+</header>
+
+<div class="mobile-banner" id="mobileBanner">
+    <span class="banner-text">💻 建议使用PC端访问以获得最佳体验</span>
+    <button class="banner-close" id="bannerCloseBtn">✕</button>
+</div>
+
+<aside id="sidebar">
+    <div class="sidebar-header">
+        <span>📋 配置面板</span>
+        <button class="sidebar-close" id="closeSidebarBtn">‹</button>
+    </div>
+    <div class="sidebar-content">
+        <section class="sidebar-section">
+            <h2>干员库</h2>
+            <div class="btn-group">
+                <button id="clearConfigBtn" class="btn-warning">🗑️ 清空全部干员配置</button>
+                <button id="showTalentBtn" class="btn-primary">📊 干员天赋一览</button>
+            </div>
+            <div class="filter-bar">
+                <div class="tip-text">⚠️ 配置仅在当前标签页有效，请通过右上角"干员数据设置"导出备份或上传云端。</div>
+                <div class="filter-row">
+                    <span>筛选：</span>
+                    <select id="eliteFilter">
+                        <option value="all">全部</option>
+                        <option value="none">未拥有</option>
+                        <option value="精零">精零</option>
+                        <option value="精一">精一</option>
+                        <option value="精二">精二</option>
+                        <option value="精三">精三</option>
+                        <option value="精四">精四</option>
+                    </select>
+                    <select id="starFilter">
+                        <option value="all">全部星级</option>
+                        <option value="六星">六星</option>
+                        <option value="五星">五星</option>
+                        <option value="四星">四星</option>
+                    </select>
+                    <select id="attributeFilter">
+                        <option value="all">全部属性</option>
+                        <option value="灼热">灼热</option>
+                        <option value="电磁">电磁</option>
+                        <option value="寒冷">寒冷</option>
+                        <option value="自然">自然</option>
+                        <option value="物理">物理</option>
+                    </select>
+                </div>
+            </div>
+            <div id="operatorStatusContainer" class="operator-list"><div style="text-align:center; color:#888;">加载中...</div></div>
+            <div class="info-note">※ 点击干员可单独修改精英化等级与天赋激活状态。</div>
+        </section>
+
+        <section class="sidebar-section">
+            <h2>生产策略</h2>
+            <div class="strategy-section-inner">
+                <h4>🔄 二轮排班舱室</h4>
+                <div class="checkbox-group double-round-area" id="doubleRoundRooms">
+                    <label class="checkbox-label"><input type="checkbox" value="central"> 总控中枢</label>
+                    <label class="checkbox-label"><input type="checkbox" value="manufactA"> 制造舱 A</label>
+                    <label class="checkbox-label"><input type="checkbox" value="manufactB"> 制造舱 B</label>
+                    <label class="checkbox-label"><input type="checkbox" value="culture"> 培养舱</label>
+                    <label class="checkbox-label"><input type="checkbox" value="meeting"> 会客室</label>
+                </div>
+                <div class="confirm-btn-area"><button id="confirmDoubleRoundBtn" class="btn-primary">✅ 确认二轮舱室</button></div>
+                <div class="info-note" style="margin-top:4px;">勾选后点击"确认"生效，排班将更新。</div>
+            </div>
+            <div class="strategy-section-inner">
+                <h4>🏢 总控中枢模式</h4>
+                <div class="central-mode-selector" id="centralModeSelector">
+                    <div class="mode-btn active" data-mode="normal">常规中枢</div>
+                    <div class="mode-btn" data-mode="empty">中枢空置</div>
+                    <div class="mode-btn" data-mode="trust">培养信赖</div>
+                </div>
+                <div class="central-trust-area" id="centralTrustArea" style="display:none;">
+                    <span class="trust-info" id="trustInfoLabel">选择信赖干员（至多3人，优先放入中枢）：</span>
+                    <button class="trust-btn" id="openTrustModalBtn">选择干员</button>
+                    <div class="trust-tags" id="trustTags"></div>
+                </div>
+                <div class="info-note" style="margin-top:6px;">"培养信赖"模式下，所选干员优先排至总控。</div>
+            </div>
+            <div class="strategy-section-inner">
+                <h4>⚙️ 制造舱 (可多选)</h4>
+                <div class="checkbox-group" id="manufactProducts">
+                    <label class="checkbox-label"><input type="checkbox" value="exp" checked> 干员经验素材</label>
+                    <label class="checkbox-label"><input type="checkbox" value="weapon" checked> 武器经验素材</label>
+                </div>
+            </div>
+            <div class="strategy-section-inner">
+                <h4>🌱 培养舱 (可多选)</h4>
+                <div class="checkbox-group" id="cultureProducts">
+                    <label class="checkbox-label"><input type="checkbox" value="mineral" checked> 矿物</label>
+                    <label class="checkbox-label"><input type="checkbox" value="fungi" checked> 菌类</label>
+                    <label class="checkbox-label"><input type="checkbox" value="plant" checked> 晶植</label>
+                </div>
+            </div>
+            <div class="strategy-section-inner">
+                <div class="toggle-switch">
+                    <span class="toggle-label">📄 会客室优先</span>
+                    <div id="meetingPriorityToggle" class="toggle-btn"></div>
+                    <span id="priorityStatus" style="font-size:0.7rem; color:#555;">关闭</span>
+                </div>
+                <div id="missingCluesArea" style="display: none;">
+                    <div style="margin: 8px 0 4px 0;">缺少的线索 (多选):</div>
+                    <div class="clue-buttons" id="clueButtons"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+</aside>
+
+<!-- 干员数据设置面板 -->
+<div class="modal-overlay" id="dataSettingsModal">
+    <div class="batch-modal">
+        <div class="batch-header">
+            <h2>⚙️ 干员数据设置</h2>
+            <button class="close-btn" id="dataSettingsCloseBtn">✕</button>
+        </div>
+        <div class="ds-intro">
+            ⚠️ 注：为简化统计，默认干员已点满该精英化阶级下所有可点舱室天赋。如需精细设置，请使用单干员编辑或下方的三种导入方式。
+        </div>
+
+        <!-- 1. 森空岛凭证导入 -->
+        <div class="ds-card" data-card="cred">
+            <div class="ds-card-head" onclick="toggleDsCard('cred')">
+                <div class="ds-card-title"><span class="ds-icon">🎮</span> 森空岛凭证导入</div>
+                <div class="ds-card-arrow">▼</div>
+            </div>
+            <div class="ds-card-body">
+                <div class="ds-card-body-inner">
+                    <p>通过粘贴森空岛浏览器的 <code>cred</code> 与 <code>token</code>，前端直连森空岛接口读取您账号内的终末地干员精英化与天赋配置。</p>
+                    <div class="ds-note">凭证仅用于一次获取，不会保存到任何服务器；分步骤向导将指导您完成操作。</div>
+                    <div class="ds-card-actions">
+                        <button class="ds-action-btn" id="dsBtnCred">凭证导入</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 官网 Token 导入 -->
+        <div class="ds-card" data-card="hgToken">
+            <div class="ds-card-head" onclick="toggleDsCard('hgToken')">
+                <div class="ds-card-title"><span class="ds-icon">🏢</span> 官网 Token 导入</div>
+                <div class="ds-card-arrow">▼</div>
+            </div>
+            <div class="ds-card-body">
+                <div class="ds-card-body-inner">
+                    <p>通过鹰角网络通行证登录，由本工具后端将临时 Token 换取森空岛凭据，再读取终末地干员数据。<b>移动端推荐</b>。</p>
+                    <div class="ds-note">无需打开浏览器控制台，手机端也能轻松操作。</div>
+                    <div class="ds-card-actions">
+                        <button class="ds-action-btn" id="dsBtnHgToken">官网 Token 导入</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 森空岛扫码登录 -->
+        <div class="ds-card" data-card="qrLogin">
+            <div class="ds-card-head" onclick="toggleDsCard('qrLogin')">
+                <div class="ds-card-title"><span class="ds-icon">📱</span> 森空岛扫码登录（推荐）</div>
+                <div class="ds-card-arrow">▼</div>
+            </div>
+            <div class="ds-card-body">
+                <div class="ds-card-body-inner">
+                    <p>使用手机森空岛 APP 扫一扫即可登录，<b>无需复制粘贴任何凭证</b>。全程由本工具服务器代理，登录态短时效，用完即弃。<b>PC 端和移动端首选</b>。</p>
+                    <div class="ds-note">扫码后自动获取干员数据，服务端不落盘、不记录凭证。</div>
+                    <div class="ds-card-actions">
+                        <button class="ds-action-btn" id="dsBtnQrLogin">📱 扫码登录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 批量设置 -->
+        <div class="ds-card" data-card="batch">
+            <div class="ds-card-head" onclick="toggleDsCard('batch')">
+                <div class="ds-card-title"><span class="ds-icon">⚙️</span> 批量设置</div>
+                <div class="ds-card-arrow">▼</div>
+            </div>
+            <div class="ds-card-body">
+                <div class="ds-card-body-inner">
+                    <p>手动为干员设置"精英化"等级，并默认激活该阶级下所有可解锁天赋。</p>
+                    <div class="ds-card-actions">
+                        <button class="ds-action-btn" id="dsBtnBatch">打开批量设置页面</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 云端上传下载 -->
+        <div class="ds-card" data-card="cloud">
+            <div class="ds-card-head" onclick="toggleDsCard('cloud')">
+                <div class="ds-card-title"><span class="ds-icon">☁️</span> 云端上传下载</div>
+                <div class="ds-card-arrow">▼</div>
+            </div>
+            <div class="ds-card-body">
+                <div class="ds-card-body-inner">
+                    <p>基于本机特征码，将干员配置上传服务器或从服务器下载已上传数据。</p>
+                    <div class="ds-card-actions">
+                        <button class="ds-action-btn" id="dsBtnCloudUpload">上传云端干员数据</button>
+                        <button class="ds-action-btn secondary" id="dsBtnCloudDownload">下载云端干员数据</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. 本地导入导出 -->
+        <div class="ds-card" data-card="local">
+            <div class="ds-card-head" onclick="toggleDsCard('local')">
+                <div class="ds-card-title"><span class="ds-icon">📁</span> 本地导入导出</div>
+                <div class="ds-card-arrow">▼</div>
+            </div>
+            <div class="ds-card-body">
+                <div class="ds-card-body-inner">
+                    <p>将干员数据以文件或 Base64 代码形式导出到本地，或从历史备份中导入。</p>
+                    <div class="ds-card-actions">
+                        <button class="ds-action-btn" id="dsBtnImport">干员数据导入</button>
+                        <button class="ds-action-btn secondary" id="dsBtnExport">干员数据导出</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- 批量设置 -->
+<div class="modal-overlay" id="batchModalOverlay">
+    <div class="batch-modal batch-modal-wide">
+        <div class="batch-header">
+            <h2>⚙️ 批量设置</h2>
+            <div class="batch-header-right">
+                <button class="header-back-btn" id="batchBackBtn">← 返回</button>
+                <button class="close-btn" id="closeBatchModalBtn">✕</button>
+            </div>
+        </div>
+        <div class="batch-hint">
+            💡 选择等级并保存时，将默认激活该阶级下所有可解锁天赋。如需精细设置个别干员的单个天赋开关，请返回后在干员库中点击该干员进行修改。
+        </div>
+        <div class="tab-bar" id="batchTabBar"></div>
+        <div class="batch-filter-bar">
+            <div class="batch-filter-group">
+                <label>星级</label>
+                <select id="batchFilterStar">
+                    <option value="all">全部</option>
+                    <option value="六星">六星</option>
+                    <option value="五星">五星</option>
+                    <option value="四星">四星</option>
+                </select>
+            </div>
+            <div class="batch-filter-group">
+                <label>属性</label>
+                <select id="batchFilterAttribute">
+                    <option value="all">全部</option>
+                    <option value="灼热">灼热</option>
+                    <option value="电磁">电磁</option>
+                    <option value="寒冷">寒冷</option>
+                    <option value="自然">自然</option>
+                    <option value="物理">物理</option>
+                </select>
+            </div>
+            <div class="batch-filter-actions">
+                <button id="batchSelectAllBtn">全选当前列表</button>
+                <button id="batchClearAllBtn">取消全选</button>
+            </div>
+        </div>
+        <div class="operator-grid" id="batchOperatorGrid"></div>
+        <div class="batch-footer">
+            <div class="batch-actions">
+                <span class="batch-label">批量修改</span>
+                <button data-level="精四">精四</button>
+                <button data-level="精三">精三</button>
+                <button data-level="精二">精二</button>
+                <button data-level="精一">精一</button>
+                <button data-level="精零">精零</button>
+                <button data-level="unowned" class="danger">未拥有</button>
+            </div>
+            <div class="batch-actions">
+                <span class="batch-label">天赋</span>
+                <button id="batchActivateAllBtn">激活当前等级全部可点</button>
+                <button id="batchClearTalentsBtn">清空天赋</button>
+            </div>
+            <div class="save-area">
+                <button class="btn-cancel" id="batchCancelBtn">取消</button>
+                <button class="btn-save" id="batchSaveBtn">保存设置</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 导入/导出 -->
+<div class="modal-overlay" id="exportImportOverlay">
+    <div class="batch-modal" style="max-width:700px;">
+        <div class="batch-header">
+            <h2 id="eiTitle">导出配置</h2>
+            <div class="batch-header-right">
+                <button class="header-back-btn" id="eiBackBtn">← 返回</button>
+                <button class="close-btn" id="eiCloseBtn">✕</button>
+            </div>
+        </div>
+        <div id="eiContent" style="flex:1; overflow-y:auto;"></div>
+    </div>
+</div>
+
+<!-- 云端管理（兼容旧入口，不主动显示） -->
+<div class="modal-overlay" id="cloudMenuOverlay">
+    <div class="batch-modal" style="max-width:800px;">
+        <div class="batch-header">
+            <h2>☁️ 云端数据管理</h2>
+            <button class="close-btn" id="cloudMenuCloseBtn">✕</button>
+        </div>
+        <div id="cloudMenuContent">
+            <div class="cloud-menu-grid">
+                <div class="cloud-menu-item" id="cloudDownloadBtn"><div class="icon">📥</div><div class="label">读取本设备历史上传配置数据</div></div>
+                <div class="cloud-menu-item" id="cloudUploadBtn"><div class="icon">📤</div><div class="label">上传本次配置数据</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="cloudDownloadOverlay">
+    <div class="batch-modal" style="max-width:900px;">
+        <div class="batch-header">
+            <h2>📥 云端配置预览</h2>
+            <div class="batch-header-right">
+                <button class="header-back-btn" id="cloudDownloadBackBtn">← 返回</button>
+                <button class="close-btn" id="cloudDownloadCloseBtn">✕</button>
+            </div>
+        </div>
+        <div id="cloudDownloadContent"></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="cloudUploadConfirmOverlay">
+    <div class="batch-modal" style="max-width:600px;">
+        <div class="batch-header">
+            <h2>📤 上传确认</h2>
+            <div class="batch-header-right">
+                <button class="header-back-btn" id="cloudUploadBackBtn">← 返回</button>
+                <button class="close-btn" id="cloudUploadConfirmCloseBtn">✕</button>
+            </div>
+        </div>
+        <div id="cloudUploadConfirmContent"></div>
+    </div>
+</div>
+
+<!-- 信赖干员 -->
+<div class="modal-overlay" id="trustModalOverlay">
+    <div class="batch-modal" style="max-width:800px;">
+        <div class="batch-header">
+            <h2>选择信赖干员（总控中枢）</h2>
+            <button class="close-btn" id="trustModalCloseBtn">✕</button>
+        </div>
+        <div class="batch-filter-bar" style="margin-bottom:12px;">
+            <div class="batch-filter-group">
+                <label>星级</label>
+                <select id="trustFilterStar">
+                    <option value="all">全部</option>
+                    <option value="六星">六星</option>
+                    <option value="五星">五星</option>
+                    <option value="四星">四星</option>
+                </select>
+            </div>
+            <div class="batch-filter-group">
+                <label>属性</label>
+                <select id="trustFilterAttribute">
+                    <option value="all">全部</option>
+                    <option value="灼热">灼热</option>
+                    <option value="电磁">电磁</option>
+                    <option value="寒冷">寒冷</option>
+                    <option value="自然">自然</option>
+                    <option value="物理">物理</option>
+                </select>
+            </div>
+            <div class="batch-filter-actions"><button id="trustFilterResetBtn">重置筛选</button></div>
+        </div>
+        <div style="margin-bottom:12px; font-size:0.9rem; color:#555;">
+            <span>已选 <span id="trustSelectedCount">0</span> / <span id="trustMaxCount">3</span> 人</span>
+            <button id="trustClearBtn" style="margin-left:16px; background:#f0f0f0; border:1px solid #ddd; border-radius:30px; padding:2px 12px; cursor:pointer;">清空选择</button>
+        </div>
+        <div class="operator-grid" id="trustOperatorGrid"></div>
+        <div class="batch-footer" style="justify-content:flex-end;">
+            <div class="save-area">
+                <button class="btn-cancel" id="trustCancelBtn">取消</button>
+                <button class="btn-save" id="trustConfirmBtn">确认选择</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="trustAssignOverlay">
+    <div class="batch-modal" style="max-width:900px;">
+        <div class="batch-header">
+            <h2>🔄 分配信赖干员至总控中枢</h2>
+            <button class="close-btn" id="trustAssignCloseBtn">✕</button>
+        </div>
+        <div style="margin-bottom:12px; font-size:0.95rem; color:#555;">请点击干员头像切换轮次（每轮最多3人，共6人）。</div>
+        <div style="display:flex; gap:20px; flex-wrap:wrap; justify-content:center;">
+            <div style="flex:1; min-width:200px; background:#f8fafc; border-radius:16px; padding:12px; border:2px solid #3f7e6b;">
+                <div class="trust-round1-label" style="font-weight:600; text-align:center; margin-bottom:8px;">🔵 一轮（中枢）</div>
+                <div class="trust-drop-zone" id="trustRound1Container"></div>
+            </div>
+            <div style="flex:1; min-width:200px; background:#f8fafc; border-radius:16px; padding:12px; border:2px solid #ffc107;">
+                <div class="trust-round2-label" style="font-weight:600; text-align:center; margin-bottom:8px;">🟡 二轮（中枢）</div>
+                <div class="trust-drop-zone" id="trustRound2Container"></div>
+            </div>
+        </div>
+        <div style="margin-top:16px; display:flex; justify-content:center; gap:20px;">
+            <button class="btn-cancel" id="trustAssignCancelBtn">取消</button>
+            <button class="btn-save" id="trustAssignConfirmBtn">确认分配</button>
+        </div>
+    </div>
+</div>
+
+<!-- 反馈 -->
+<div class="modal-overlay" id="feedbackModal">
+    <div class="batch-modal" style="max-width:700px;">
+        <div class="batch-header">
+            <h2>反馈 &amp; 建议</h2>
+            <button class="close-btn" id="feedbackCloseBtn">✕</button>
+        </div>
+        <div style="flex:1; overflow-y:auto;">
+            <div style="margin-bottom:16px;">
+                <label style="font-weight:600; display:block; margin-bottom:6px;">1. 使用时遇到的问题或对本工具的建议</label>
+                <textarea id="feedbackText" class="feedback-textarea" placeholder="请详细描述您的反馈..."></textarea>
+            </div>
+            <div>
+                <label style="font-weight:600; display:block; margin-bottom:6px;">2. 截图上传（总图片大小不超过5M）</label>
+                <div class="feedback-file-area" id="feedbackFileArea">
+                    <span style="color:#888;">点击或拖拽上传图片（支持 jpg/png/webp）</span>
+                    <input type="file" id="feedbackFileInput" accept="image/*" multiple style="display:none;">
+                </div>
+                <div class="feedback-file-list" id="feedbackFileList"></div>
+                <div style="font-size:0.8rem; color:#888; margin-top:6px;">已选文件总大小：<span id="feedbackTotalSize">0</span> KB（上限 5120 KB）</div>
+            </div>
+            <div id="feedbackStatus" class="feedback-status"></div>
+        </div>
+        <div class="save-area" style="justify-content:flex-end; margin-top:16px;">
+            <button class="btn-cancel" id="feedbackCancelBtn">取消</button>
+            <button class="btn-save" id="feedbackSubmitBtn">确认提交</button>
+        </div>
+    </div>
+</div>
+
+<!-- 天赋一览 -->
+<div class="modal-overlay" id="talentModal">
+    <div class="batch-modal" style="max-width:1200px;">
+        <div class="batch-header">
+            <h2>📊 干员天赋一览</h2>
+            <button class="close-btn" id="talentCloseBtn">✕</button>
+        </div>
+        <div class="talent-tabs" id="talentTabs">
+            <button class="tab-btn active" data-view="room">舱室天赋</button>
+            <button class="tab-btn" data-view="full">全干员天赋</button>
+        </div>
+        <div class="talent-filter-area" id="talentFilterArea">
+            <div class="batch-filter-group">
+                <label>星级</label>
+                <select id="talentStarFilter">
+                    <option value="all">全部</option>
+                    <option value="六星">六星</option>
+                    <option value="五星">五星</option>
+                    <option value="四星">四星</option>
+                </select>
+            </div>
+            <div class="batch-filter-group">
+                <label>属性</label>
+                <select id="talentAttrFilter">
+                    <option value="all">全部</option>
+                    <option value="灼热">灼热</option>
+                    <option value="电磁">电磁</option>
+                    <option value="寒冷">寒冷</option>
+                    <option value="自然">自然</option>
+                    <option value="物理">物理</option>
+                </select>
+            </div>
+            <div class="batch-filter-group" id="talentFullExtraFilter" style="display:none;">
+                <label>舱室筛选</label>
+                <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                    <label><input type="radio" name="talentRoomRadio" value="all" checked> 全部</label>
+                    <label><input type="radio" name="talentRoomRadio" value="总控中枢"> 总控中枢</label>
+                    <label><input type="radio" name="talentRoomRadio" value="制造舱"> 制造舱</label>
+                    <label><input type="radio" name="talentRoomRadio" value="培养舱"> 培养舱</label>
+                    <label><input type="radio" name="talentRoomRadio" value="会客室"> 会客室</label>
+                </div>
+            </div>
+        </div>
+        <div id="talentContent" style="flex:1; overflow:auto;"></div>
+    </div>
+</div>
+
+<!-- 更新日志 -->
+<div class="changelog-modal-overlay" id="changelogOverlay">
+    <div class="changelog-modal">
+        <div class="changelog-header">
+            <h2>📋 更新日志</h2>
+            <button class="changelog-close-x" id="changelogCloseX">✕</button>
+        </div>
+        <div class="changelog-body" id="changelogBody"><p style="color:#888;">加载中...</p></div>
+        <div class="changelog-footer"><button class="changelog-close-btn" id="changelogCloseBtn">关闭</button></div>
+    </div>
+</div>
+
+<!-- 森空岛凭证导入 -->
+<div class="modal-overlay" id="enfdModal">
+  <div class="batch-modal enfd-wizard">
+    <div class="batch-header">
+      <h2>🎮 从森空岛凭证导入精英化与天赋配置</h2>
+      <div class="batch-header-right">
+        <button class="header-back-btn" id="enfdBackToSettingsBtn">← 返回</button>
+        <button class="close-btn" id="enfdCloseBtn">✕</button>
+      </div>
+    </div>
+    <div class="enfd-progress" id="enfdProgress">
+      <div class="enfd-progress-item" data-step="0"><div class="enfd-progress-dot">0</div><div class="enfd-progress-label">风险说明</div></div>
+      <div class="enfd-progress-line"></div>
+      <div class="enfd-progress-item" data-step="1"><div class="enfd-progress-dot">1</div><div class="enfd-progress-label">打开森空岛</div></div>
+      <div class="enfd-progress-line"></div>
+      <div class="enfd-progress-item" data-step="2"><div class="enfd-progress-dot">2</div><div class="enfd-progress-label">复制凭证</div></div>
+      <div class="enfd-progress-line"></div>
+      <div class="enfd-progress-item" data-step="3"><div class="enfd-progress-dot">3</div><div class="enfd-progress-label">粘贴获取</div></div>
+      <div class="enfd-progress-line"></div>
+      <div class="enfd-progress-item" data-step="4"><div class="enfd-progress-dot">4</div><div class="enfd-progress-label">确认账号</div></div>
+    </div>
+    <div class="enfd-step-body">
+      <div class="enfd-step" data-step="0">
+        <div class="enfd-warning-box">
+          <div class="enfd-warning-title">⚠️ 使用前请了解</div>
+          <ul>
+            <li><b>涉及范围：游戏数据</b>。您粘贴的 <code>cred</code> 是森空岛侧读取游戏数据的凭据，<code>token</code> 用于对请求签名。泄露后他人可读取您的终末地角色信息（干员、基建、精英化等）。</li>
+            <li><b>不含登录能力</b>。该凭据无法登录您的森空岛账号、无法进行发帖、充值等账号级操作，风险限于数据读取。</li>
+            <li><b>一次性使用</b>。本页面通过前端直接向森空岛接口发起请求，<b>凭证不上传到本工具服务器</b>，也不写入本地存储。</li>
+            <li><b>用完请自行更换</b>。操作完成后，在森空岛官网退出登录即可使该凭据失效。</li>
+          </ul>
+        </div>
+        <p class="enfd-step-desc">继续操作前，请确认您已阅读并理解上述说明。</p>
+      </div>
+      
+      <div class="enfd-step" data-step="1">
+        <h3 class="enfd-step-title">步骤 1：打开森空岛官网并登录</h3>
+        <p class="enfd-step-desc">点击下方按钮跳转到森空岛官网，使用您的账号完成登录，并保持登录状态（不要退出登录）。</p>
+        <div class="enfd-center-btn-wrap">
+          <a href="https://www.skland.com/" target="_blank" rel="noopener" class="enfd-open-skland-btn">🔗 点击打开森空岛官网</a>
+        </div>
+        <p class="enfd-note">💡 建议 PC 端进行操作，手机端浏览器可能无法调出 F12 控制台。</p>
+      </div>
+      
+      <div class="enfd-step" data-step="2">
+        <h3 class="enfd-step-title">步骤 2：从浏览器控制台复制凭证</h3>
+        <ol class="enfd-step-list">
+          <li>在森空岛官网页面按 <b>F12</b> 打开开发者工具，切换到 <b>Console（控制台）</b> 标签；</li>
+          <li>点击下方 <b>📋 复制代码</b> 按钮，把代码粘贴到控制台后按 <b>回车</b>；</li>
+          <li>控制台会输出 <code>undefined</code>（这是正常的），凭证内容已自动复制到剪贴板。</li>
+        </ol>
+        <div class="enfd-warning-box" style="margin: 12px 0;">
+          <div class="enfd-warning-title">💡 首次使用控制台无法粘贴？</div>
+          <ul>
+            <li>Chrome、Edge 等浏览器出于安全考虑，<b>第一次</b>在控制台粘贴代码时会拦截并弹出一段提示。</li>
+            <li>此时请手动在控制台输入 <code>"allow pasting"/"允许粘贴"</code> 并按回车，之后就可以正常粘贴了。</li>
+            <li>这只是一次性的浏览器安全确认，不会执行任何代码，输入后重启浏览器也无需再次输入。</li>
+          </ul>
+        </div>
+        <div class="enfd-img-wrap">
+          <img src="/cred.png" alt="操作示意图" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <div class="enfd-img-fallback">（示意图 /cred.png 加载失败，请确认文件与 index.html 同目录）</div>
+        </div>
+        <div class="enfd-code-box">
+          <code id="enfdCodeText">copy(localStorage.getItem('SK_OAUTH_CRED_KEY')+','+localStorage.getItem('SK_TOKEN_CACHE_KEY'))</code>
+          <button class="enfd-copy-btn" id="enfdCopyCodeBtn">📋 复制代码</button>
+        </div>
+      </div>
+      <div class="enfd-step" data-step="3">
+        <div id="enfdStep3Input">
+          <h3 class="enfd-step-title">步骤 3：粘贴凭证并获取数据</h3>
+          <p class="enfd-step-desc">将上一步复制到剪贴板的内容（格式为 <code>cred,token</code>）粘贴到下方输入框，然后点击右下角 <b>一键获取</b>。</p>
+          <textarea id="enfdCredInput" placeholder="在此粘贴凭证（形如：0mRlpjif...,18a9d873...）"></textarea>
+          <div id="enfdStatus" class="enfd-status info"></div>
+        </div>
+      </div>
+      
+      <div class="enfd-step" data-step="4">
+        <div id="enfdStep4Account">
+          <h3 class="enfd-step-title">步骤 4：确认账号</h3>
+          <p class="enfd-step-desc">已识别到以下终末地账号，请确认是您要导入的账号。确认无误后点击右下角 <b>查看天赋</b>。</p>
+          <div class="enfd-account-card">
+            <div class="enfd-account-name" id="enfdAccountName">—</div>
+            <div class="enfd-account-meta" id="enfdAccountMeta">—</div>
+          </div>
+        </div>
+        <div id="enfdStep4Preview" style="display:none;">
+          <h3 class="enfd-step-title">✅ 数据获取成功，请确认导入</h3>
+          <div class="enfd-import-summary" id="enfdImportSummary"></div>
+          <div class="config-preview-grid" id="enfdPreviewGrid"></div>
+        </div>
+      </div>
+    </div>
+    <div class="enfd-wizard-footer">
+      <button class="enfd-btn-back" id="enfdBackBtn">返回</button>
+      <button class="enfd-btn-next" id="enfdNextBtn">下一步</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 官网 Token 导入 ========== -->
+<div class="modal-overlay" id="hgTokenModal">
+  <div class="batch-modal enfd-wizard">
+    <div class="batch-header">
+      <h2>🏢 从官网 Token 导入精英化与天赋配置</h2>
+      <div class="batch-header-right">
+        <button class="header-back-btn" id="hgTokenBackToSettingsBtn">← 返回</button>
+        <button class="close-btn" id="hgTokenCloseBtn">✕</button>
+      </div>
+    </div>
+
+    <div class="enfd-progress" id="hgTokenProgress">
+      <div class="enfd-progress-item" data-step="0">
+        <div class="enfd-progress-dot">0</div>
+        <div class="enfd-progress-label">风险说明</div>
+      </div>
+      <div class="enfd-progress-line"></div>
+      <div class="enfd-progress-item" data-step="1">
+        <div class="enfd-progress-dot">1</div>
+        <div class="enfd-progress-label">登录通行证</div>
+      </div>
+      <div class="enfd-progress-line"></div>
+      <div class="enfd-progress-item" data-step="2">
+        <div class="enfd-progress-dot">2</div>
+        <div class="enfd-progress-label">复制 Token</div>
+      </div>
+      <div class="enfd-progress-line"></div>
+      <div class="enfd-progress-item" data-step="3">
+        <div class="enfd-progress-dot">3</div>
+        <div class="enfd-progress-label">粘贴获取</div>
+      </div>
+      <div class="enfd-progress-line"></div>
+      <div class="enfd-progress-item" data-step="34">
+        <div class="enfd-progress-dot">4</div>
+        <div class="enfd-progress-label">确认账号</div>
+      </div>
+    </div>
+
+    <div class="enfd-step-body">
+      <div class="enfd-step" data-step="0">
+        <div class="enfd-warning-box">
+          <div class="enfd-warning-title">⚠️ 使用前请了解</div>
+          <ul>
+            <li><b>涉及范围：鹰角账号</b>。您粘贴的 Token 是鹰角网络通行证下发的临时登录凭证，可用于访问该账号的账号信息与游戏绑定数据，<b>是三种方式中权限最高的一种</b>。</li>
+            <li><b>会经过本工具服务器</b>。后端 <code>/api/hg-to-cred</code> 用该 Token 换取森空岛凭据，再拉取干员数据。服务器仅在内存中转发，<b>不落盘、不记录日志</b>。</li>
+            <li><b>Token 有效期较短</b>。一般为几十分钟至数小时，过期自动失效，之后无法再使用。</li>
+            <li><b>建议操作后修改密码</b>。若您对账号安全较为敏感，可在导入完成后修改一次鹰角通行证密码，旧 Token 立即失效。</li>
+          </ul>
+        </div>
+        <p class="enfd-step-desc">继续操作前，请确认您已阅读并理解上述说明。</p>
+      </div>
+      <div class="enfd-step" data-step="1">
+        <h3 class="enfd-step-title">步骤 1：打开鹰角网络通行证并登录</h3>
+        <p class="enfd-step-desc">点击下方按钮跳转到鹰角网络通行证，使用您的账号完成登录，并保持登录状态（不要退出登录）。</p>
+        <div class="enfd-center-btn-wrap">
+          <a href="https://user.hypergryph.com/login" target="_blank" rel="noopener" class="enfd-open-skland-btn">🔗 点击打开鹰角通行证</a>
+        </div>
+        <p class="enfd-note">💡 移动端和 PC 端均可操作，无需打开浏览器控制台。</p>
+      </div>
+
+      <div class="enfd-step" data-step="2">
+        <h3 class="enfd-step-title">步骤 2：获取 Token</h3>
+        <ol class="enfd-step-list">
+          <li><b>保持上一步的登录状态</b>（同一个浏览器，不要退出登录）；</li>
+          <li>点击下方按钮打开 Token 页面；</li>
+          <li>页面会显示一段 <code>JSON</code> 文本，<b>把整段内容复制下来</b>（工具会自动识别其中的 Token）。</li>
+        </ol>
+        <div class="enfd-center-btn-wrap">
+          <a href="https://web-api.hypergryph.com/account/info/hg" target="_blank" rel="noopener" class="enfd-open-skland-btn">🔗 点击获取 Token</a>
+        </div>
+        <p class="enfd-note">💡 手机端看到一段 JSON 文本是正常的，全选复制即可。</p>
+      </div>
+
+      <div class="enfd-step" data-step="3">
+        <div id="hgTokenStep3Input">
+          <h3 class="enfd-step-title">步骤 3：粘贴 Token 并获取数据</h3>
+          <p class="enfd-step-desc">将上一步复制的内容（整段 JSON 或仅 <code>content</code> 值均可）粘贴到下方输入框，然后点击右下角 <b>一键获取</b>。</p>
+          <textarea id="hgTokenInput" placeholder="在此粘贴（整段 JSON 或 content 值都可以，会自动识别）..."></textarea>
+          <div id="hgTokenStatus" class="enfd-status info"></div>
+        </div>
+      </div>
+      
+      <div class="enfd-step" data-step="4">
+        <div id="hgTokenStep4Account">
+          <h3 class="enfd-step-title">步骤 4：确认账号</h3>
+          <p class="enfd-step-desc">已识别到以下终末地账号，请确认是您要导入的账号。确认无误后点击右下角 <b>查看天赋</b>。</p>
+          <div class="enfd-account-card">
+            <div class="enfd-account-name" id="hgTokenAccountName">—</div>
+            <div class="enfd-account-meta" id="hgTokenAccountMeta">—</div>
+          </div>
+        </div>
+        <div id="hgTokenStep4Preview" style="display:none;">
+          <h3 class="enfd-step-title">✅ 数据获取成功，请确认导入</h3>
+          <div class="enfd-import-summary" id="hgTokenImportSummary"></div>
+          <div class="config-preview-grid" id="hgTokenPreviewGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="enfd-wizard-footer">
+      <button class="enfd-btn-back" id="hgTokenBackBtn">返回</button>
+      <button class="enfd-btn-next" id="hgTokenNextBtn">下一步</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 森空岛扫码登录弹窗 ========== -->
+<div class="modal-overlay" id="qrLoginModal">
+  <div class="batch-modal enfd-wizard">
+    <div class="batch-header">
+      <h2>📱 森空岛扫码登录</h2>
+      <div class="batch-header-right">
+        <button class="header-back-btn" id="qrLoginBackBtn">← 返回</button>
+        <button class="close-btn" id="qrLoginCloseBtn">✕</button>
+      </div>
+    </div>
+
+    <div class="enfd-progress" id="qrProgress">
+      <div class="enfd-progress-item active" data-step="0">
+        <div class="enfd-progress-dot">0</div>
+        <div class="enfd-progress-label">扫码登录</div>
+      </div>
+      <div class="enfd-progress-line"></div>
+      <div class="enfd-progress-item" data-step="1">
+        <div class="enfd-progress-dot">1</div>
+        <div class="enfd-progress-label">确认导入</div>
+      </div>
+    </div>
+
+    <div class="enfd-step-body">
+      <div class="enfd-step active" data-step="0">
+          <div style="text-align:center; padding: 20px 0;">
+          <div id="qrBox" style="
+            width: 260px; height: 260px; margin: 0 auto 20px;
+            background: #f8fafc; border: 1px dashed #d0d7de; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; position: relative;">
+            <span style="color:#888;">正在生成二维码……</span>
+          </div>
+          <div id="qrStatus" style="font-size: 1rem; font-weight: 600; color: #555;
+                                    min-height: 1.6em; margin-bottom: 8px;">
+            尚未开始
+          </div>
+          <div style="font-size: 0.85rem; color: #999; line-height: 1.6;">
+            打开森空岛 APP → 扫一扫 → 确认登录
+          </div>
+            <div style="margin-top: 20px; display: flex; justify-content: center;">
+                <!-- 隐藏原生成按钮，保留 DOM 以避免 JS 引用报错 -->
+                <button id="qrCreateBtn" style="display: none;" aria-hidden="true"></button>
+                <button id="qrRefreshBtn"
+                        style="background:#3f7e6b;color:#fff;border:none;padding:10px 24px;
+                               border-radius:30px;font-weight:600;cursor:pointer;font-size:0.95rem;">
+                  🔄 刷新二维码
+                </button>
+            </div>
+        </div>
+      </div>
+
+      <div class="enfd-step" data-step="1">
+        <div id="qrAccountView">
+          <h3 class="enfd-step-title">步骤 1：确认账号</h3>
+          <p class="enfd-step-desc">已识别到以下终末地账号，请确认是您要导入的账号。确认无误后点击右下角 <b>查看天赋</b>。</p>
+          <div class="enfd-account-card">
+            <div class="enfd-account-name" id="qrAccountName">—</div>
+            <div class="enfd-account-meta" id="qrAccountMeta">—</div>
+          </div>
+        </div>
+        <div id="qrPreviewView" style="display:none;">
+          <h3 class="enfd-step-title">✅ 数据获取成功，请确认导入</h3>
+          <div class="enfd-import-summary" id="qrImportSummary"></div>
+          <div class="config-preview-grid" id="qrPreviewGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="enfd-wizard-footer">
+      <button class="enfd-btn-back" id="qrBackBtn">返回</button>
+      <button class="enfd-btn-next" id="qrNextBtn" style="display: none;">✅ 确认导入</button>
+    </div>
+  </div>
+</div>
+
+<main id="mainContent">
+    <div id="scheduleResult" class="schedule-grid">
+        <div style="text-align:center; color:#888;">设置策略后将自动排班</div>
+    </div>
+    <footer style="text-align:center; font-size:0.7rem; margin-top:28px; opacity:0.7; color:#888;">网页素材来源于森空岛wiki | 网页作者：B站 @courison</footer>
+</main>
+
+<!-- ========== 外链脚本：按顺序加载 ========== -->
+<script src="/vendor/crypto-js.min.js"></script>
+<script src="/assets/js/main.js?v=20260919"></script>
+<script src="/assets/js/modules/enfd-import.js?v=20260920"></script>
+<script src="/assets/js/modules/hg-token-import.js?v=20260920"></script>
+<script src="/assets/js/modules/qr-login.js?v=20260920"></script>
+<script src="/assets/js/modules/pet.js?v=20260920"></script>
+</body>
+</html>

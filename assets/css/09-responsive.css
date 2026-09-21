@@ -1,0 +1,91 @@
+/* ============================================================
+   09-responsive.css —— 所有媒体查询，必须最后加载
+   ============================================================ */
+
+/* ---------- 移动端提示条 ---------- */
+@media (max-width: 768px) {
+    .mobile-banner { display: flex; }
+}
+
+/* ---------- 排班网格 ---------- */
+@media (min-width: 769px) {
+    .room-row-bottom .room-box {
+        flex: 0 0 calc(33.333% - 14px);
+        max-width: calc(33.333% - 14px);
+    }
+}
+@media (max-width: 768px) {
+    .room-row,
+    .room-row-bottom { flex-direction: column; align-items: stretch; }
+    .room-row .room-box,
+    .room-row-bottom .room-box { flex: 1 1 100%; min-width: 0; max-width: 100%; }
+    .recommend-area { flex-wrap: wrap; }
+    .recommend-item { flex: 0 0 calc(50% - 8px); min-height: 180px; }
+}
+
+/* ---------- 干员卡片网格 ---------- */
+@media (max-width: 768px) {
+    .operator-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; max-height: 350px; }
+}
+@media (max-width: 480px) {
+    .operator-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+}
+
+/* ---------- 配置预览网格 ---------- */
+@media (max-width: 768px) {
+    .config-preview-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ---------- 天赋视图 ---------- */
+@media (max-width: 768px) {
+    .talent-room-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+    .talent-room-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- 更新日志 ---------- */
+@media (max-width: 600px) {
+    .changelog-modal { padding: 20px 16px; max-height: 90vh; }
+}
+
+/* ---------- 扫码弹窗 ---------- */
+@media (max-width: 640px) {
+    #qrLoginModal .enfd-wizard { width: 96vw; padding: 18px 16px; }
+    #qrLoginModal .enfd-progress-item { min-width: 50px; }
+    #qrLoginModal .enfd-progress-dot { width: 28px; height: 28px; font-size: 0.85rem; }
+    #qrLoginModal .enfd-progress-label { font-size: 0.7rem; }
+}
+
+/* ---------- 移动端弹窗与数据设置 ---------- */
+@media (max-width: 640px) {
+    .modal-overlay { padding: 8px; align-items: center; }
+    .batch-modal {
+        max-height: calc(100dvh - 16px);
+        max-height: calc(100vh - 16px);
+        padding: 18px 16px;
+        border-radius: 16px;
+    }
+    .batch-header h2 { font-size: 1.15rem; }
+    .batch-header { margin-bottom: 14px; }
+    #dataSettingsModal .batch-modal { max-width: 100%; }
+    #dataSettingsModal .ds-intro { font-size: 0.85rem; padding: 10px 12px; margin-bottom: 12px; }
+    #dataSettingsModal .ds-card { margin-bottom: 10px; border-radius: 10px; }
+    #dataSettingsModal .ds-card-head { padding: 12px 14px; }
+    #dataSettingsModal .ds-card-title { font-size: 0.95rem; gap: 6px; }
+    #dataSettingsModal .ds-card-body { padding: 12px 14px 14px; font-size: 0.88rem; line-height: 1.65; }
+    #dataSettingsModal .ds-card-actions { margin-top: 12px; gap: 8px; }
+    #dataSettingsModal .ds-action-btn { padding: 8px 16px; font-size: 0.86rem; flex: 1 1 auto; white-space: nowrap; }
+    #enfdModal .enfd-wizard { width: 96vw; padding: 18px 16px; }
+    #enfdModal .enfd-progress-item { min-width: 50px; }
+    #enfdModal .enfd-progress-dot { width: 28px; height: 28px; font-size: 0.85rem; }
+    #enfdModal .enfd-progress-label { font-size: 0.7rem; }
+    #hgTokenModal .enfd-wizard { width: 96vw; padding: 18px 16px; }
+    #hgTokenModal .enfd-progress-item { min-width: 50px; }
+    #hgTokenModal .enfd-progress-dot { width: 28px; height: 28px; font-size: 0.85rem; }
+    #hgTokenModal .enfd-progress-label { font-size: 0.7rem; }
+}
+@media (max-width: 380px) {
+    #dataSettingsModal .ds-action-btn { padding: 7px 12px; font-size: 0.82rem; }
+    .batch-modal { padding: 16px 12px; }
+}

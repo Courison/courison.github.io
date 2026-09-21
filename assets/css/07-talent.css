@@ -1,0 +1,176 @@
+/* ============================================================
+   07-talent.css —— 干员天赋一览
+   ============================================================ */
+
+#talentModal .batch-modal { max-width: 1200px; }
+#talentModal .talent-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 10px;
+}
+#talentModal .talent-tabs .tab-btn {
+    padding: 6px 20px;
+    border-radius: 30px;
+    border: 1px solid #d0d7de;
+    background: transparent;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: #555;
+}
+#talentModal .talent-tabs .tab-btn.active { background: #3f7e6b; color: white; border-color: #3f7e6b; }
+#talentModal .talent-filter-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    align-items: center;
+    background: #f8fafc;
+    padding: 8px 16px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+}
+
+.talent-room-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    max-height: 550px;
+    overflow-y: auto;
+    padding: 4px 0;
+}
+.talent-room-card {
+    border: 1px solid #e8ecf0;
+    border-radius: 12px;
+    padding: 10px;
+    background: #fcfcfd;
+    display: flex;
+    flex-direction: column;
+}
+.talent-room-card .card-title {
+    font-weight: 600;
+    font-size: 1rem;
+    border-bottom: 2px solid #3f7e6b;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    color: #1a2a3a;
+}
+.talent-sub-section { margin-top: 6px; border-top: 1px dashed #e0e0e0; padding-top: 4px; }
+.talent-sub-section .sub-title {
+    font-weight: 500;
+    font-size: 0.8rem;
+    color: #555;
+    margin-bottom: 4px;
+    background: #f5f7fa;
+    padding: 0 6px;
+    border-radius: 4px;
+    display: inline-block;
+}
+.talent-agent-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+    border-bottom: 1px dashed #f0f0f0;
+    font-size: 0.8rem;
+}
+.talent-agent-item .avatar-mini {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #eaeaea;
+    border: 1px solid #ddd;
+    flex-shrink: 0;
+}
+.talent-agent-item .agent-name {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70px;
+}
+.talent-agent-item .trait-text { color: #555; font-size: 0.75rem; flex: 1; text-align: right; }
+
+.talent-full-list { max-height: 500px; overflow-y: auto; }
+.talent-full-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.talent-full-item .avatar-name {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+}
+.talent-full-item .avatar-name .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #eaeaea;
+    border: 1px solid #ccc;
+}
+.talent-full-item .avatar-name .name {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-top: 2px;
+    text-align: center;
+}
+.talent-full-item .talent-levels { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.talent-full-item .talent-levels .level-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    padding: 2px 0;
+}
+/* 全干员视图：天赋图标 */
+.talent-full-item .talent-levels .level-row .talent-full-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+    align-self: center;
+    background: #eef2f6;
+}
+
+/* 全干员视图：天赋名称 */
+.talent-full-item .talent-levels .level-row .talent-name {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #1a2a3a;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* 已激活：红色 */
+.talent-full-item .talent-levels .level-row .talent-name.activated {
+    color: #c0392b;
+}
+
+/* 天赋效果：不换行时自动收缩 */
+.talent-full-item .talent-levels .level-row .traits {
+    color: #555;
+    font-size: 0.82rem;
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
+}
+.talent-full-item .talent-levels .level-row .level-tag {
+    background: #eef2f6;
+    border-radius: 12px;
+    padding: 0 8px;
+    font-size: 0.7rem;
+    color: #333;
+    font-weight: 500;
+    min-width: 32px;
+    text-align: center;
+}
+.talent-empty { color: #999; padding: 12px; text-align: center; }

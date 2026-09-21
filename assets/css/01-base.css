@@ -1,0 +1,15 @@
+/* ============================================================
+   01-base.css —— 全局基础
+   ============================================================ */
+* {
+    box-sizing: border-box;
+    font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+body {
+    background: #ffffff;
+    margin: 0;
+    padding: 0;
+    color: #222;
+    min-height: 100vh;
+}

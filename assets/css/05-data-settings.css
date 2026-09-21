@@ -1,0 +1,242 @@
+/* ============================================================
+   05-data-settings.css —— 干员数据设置面板
+   布局：block 整体滚动，绝不截断
+   动画：grid-template-rows 0fr → 1fr 平滑展开/收起
+   ============================================================ */
+
+#dataSettingsModal .batch-modal { max-width: 760px; }
+
+/* ---------- 顶部提示 ---------- */
+.ds-intro {
+    background: #fdf6ec;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    color: #8a5e00;
+    border: 1px solid #e8cfae;
+    border-left: 4px solid #f0b400;
+    line-height: 1.7;
+}
+
+/* ---------- 卡片容器 ---------- */
+.ds-card {
+    border: 1px solid #e8ecf0;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    background: #fff;
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.ds-card.open {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: #d4e5de;
+}
+
+/* ---------- 卡片头部 ---------- */
+.ds-card-head {
+    padding: 14px 18px;
+    background: #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.25s ease;
+    user-select: none;
+}
+.ds-card-head:hover { background: #eef2f6; }
+.ds-card.open .ds-card-head { background: #e8f0ec; }
+
+.ds-card-title {
+    font-weight: 700;
+    font-size: 1.02rem;
+    color: #1a2a3a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ds-card-title .ds-icon { font-size: 1.15rem; }
+
+.ds-card-arrow {
+    color: #888;
+    font-size: 0.85rem;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.35s ease;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+.ds-card.open .ds-card-arrow {
+    transform: rotate(180deg);
+    color: #3f7e6b;
+}
+
+/* ---------- 卡片内容：grid 手风琴动画 ---------- */
+.ds-card-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    overflow: hidden;
+    padding: 0 18px;
+    border-top: 1px solid transparent;
+    font-size: 0.92rem;
+    color: #444;
+    line-height: 1.75;
+    background: #fff;
+    transition:
+        grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        padding 0.35s ease,
+        border-top-color 0.35s ease;
+}
+.ds-card.open .ds-card-body {
+    grid-template-rows: 1fr;
+    padding: 14px 18px 16px;
+    border-top-color: #eef2f6;
+}
+
+/* 内层容器：grid 动画必备，overflow + min-height 缺一不可 */
+.ds-card-body-inner {
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* ---------- 注解：左侧竖线 ---------- */
+.ds-card-body .ds-note {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: #b0885a;
+    padding: 2px 0 2px 10px;
+    border-left: 3px solid #e8cfae;
+    line-height: 1.6;
+    background: transparent;
+    border-radius: 0;
+}
+
+/* ---------- 按钮 ---------- */
+.ds-card-actions {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ds-action-btn {
+    background: #3f7e6b;
+    color: #fff;
+    border: none;
+    padding: 9px 22px;
+    border-radius: 30px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+.ds-action-btn:hover {
+    background: #2f5b50;
+    transform: translateY(-1px);
+}
+.ds-action-btn.secondary {
+    background: #fff;
+    color: #3f7e6b;
+    border: 1.5px solid #3f7e6b;
+}
+.ds-action-btn.secondary:hover { background: #f0f7f4; }
+
+/* ============================================================
+   关键修复：整个弹窗 block 布局 + 整体滚动
+   ============================================================ */
+#dataSettingsModal .batch-modal {
+    display: block !important;   /* 覆盖通用 .batch-modal 的 flex */
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 90vh;
+    max-height: 90dvh;
+    -webkit-overflow-scrolling: touch;
+}
+
+#dataSettingsModal .batch-modal > * {
+    flex-shrink: 0;
+    flex-grow: 0;
+}
+
+/* ============================================================
+   手机端适配
+   ============================================================ */
+@media (max-width: 768px) {
+    #dataSettingsModal {
+        padding: 8px;
+        align-items: center;
+    }
+
+    #dataSettingsModal .batch-modal {
+        max-width: 100%;
+        width: 100%;
+        max-height: 88vh;
+        max-height: 88dvh;
+        padding: 16px 14px;
+        border-radius: 14px;
+        margin: auto;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box;
+        display: block !important;
+    }
+
+    #dataSettingsModal .batch-header {
+        position: sticky;
+        top: -16px;
+        background: #fff;
+        z-index: 10;
+        padding-top: 6px;
+        padding-bottom: 12px;
+        margin-bottom: 4px;
+        border-bottom: 1px solid #eef2f6;
+    }
+
+    #dataSettingsModal .batch-header h2 { font-size: 1.1rem; }
+
+    #dataSettingsModal .ds-intro {
+        font-size: 0.85rem;
+        padding: 10px 12px;
+        margin-bottom: 12px;
+    }
+
+    #dataSettingsModal .ds-card {
+        margin-bottom: 10px;
+        border-radius: 10px;
+    }
+
+    #dataSettingsModal .ds-card-head { padding: 12px 14px; }
+
+    #dataSettingsModal .ds-card-title {
+        font-size: 0.95rem;
+        gap: 6px;
+    }
+
+    #dataSettingsModal .ds-card-body {
+        font-size: 0.88rem;
+        line-height: 1.65;
+        padding: 0 14px;
+    }
+    #dataSettingsModal .ds-card.open .ds-card-body {
+        padding: 12px 14px 14px;
+    }
+
+    #dataSettingsModal .ds-card-actions {
+        margin-top: 12px;
+        gap: 8px;
+    }
+
+    #dataSettingsModal .ds-action-btn {
+        padding: 8px 16px;
+        font-size: 0.86rem;
+        flex: 1 1 auto;
+        white-space: nowrap;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 380px) {
+    #dataSettingsModal .ds-action-btn {
+        padding: 7px 12px;
+        font-size: 0.82rem;
+    }
+}
