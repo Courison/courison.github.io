@@ -49,7 +49,8 @@
 - 导出排班图（PNG）
 - 意见反馈（支持截图上传）
 - 更新日志自动加载
-- 右下角「捏捏」交互角色（气泡对话、快捷按钮、隐藏彩蛋）
+- 右下角「捏捏」交互角色（气泡对话、快捷按钮）
+- 网页中有彩蛋（?）
 
 
 技术架构
@@ -58,7 +59,7 @@
 ### 前端
 
 - 入口：index.html
-- 样式：assets/css/ 下 10 个 CSS 文件，按功能拆分
+- 样式：assets/css/ 下按功能拆分的多个 CSS 文件
 - 逻辑：assets/js/main.js 主排班系统 + assets/js/modules/ 下的导入模块
 - 资源：assets/images/ 角色图片
 
@@ -66,18 +67,15 @@
 
 ### 后端
 
-| 服务 | 端口 | 职责 |
-|------|------|------|
-| api-server | 5001 | 鹰角 Token → 森空岛 cred；森空岛 API 代理 |
-| qr-server | 5002 | 扫码登录链路 + 干员数据转发 |
+- api-server：鹰角 Token → 森空岛 cred，森空岛 API 代理
+- qr-server：扫码登录链路 + 干员数据转发
 
 两者均为 Flask 应用，通过 systemd 常驻。
 
 ### Nginx 分流
 
-- /api/qr/ → 5002
-- /api/endfield/ → 5002
-- /api/ → 5001
+- /api/qr/ 与 /api/endfield/ 转发至扫码服务
+- 其余 /api/ 转发至 Token 转换服务
 
 静态资源缓存策略：
 - HTML：no-store（每次拿最新）
@@ -122,12 +120,12 @@
 
 4. 配置 Nginx
 
-   按上文「Nginx 分流」配置 arr-dijiang.top 指向 /www/wwwroot/dijiang。
+   按上文「Nginx 分流」配置域名指向 /www/wwwroot/dijiang。
 
 5. 验证
 
-   curl http://127.0.0.1:5001/api/health
-   curl http://127.0.0.1:5002/api/health
+   curl http://127.0.0.1:<token-converter-port>/api/health
+   curl http://127.0.0.1:<qr-server-port>/api/health
    curl -X POST https://arr-dijiang.top/api/qr/create | head -c 200
 
 
@@ -157,13 +155,13 @@
 
 | 接口 | 方法 | 服务 | 说明 |
 |------|------|------|------|
-| /api/hg-to-cred | POST | 5001 | 鹰角 Token → cred |
-| /api/skland/binding | POST | 5001 | 森空岛绑定列表 |
-| /api/skland/endfield-detail | POST | 5001 | 终末地干员详情 |
-| /api/qr/create | POST | 5002 | 生成扫码二维码 |
-| /api/qr/status/<scanId> | GET | 5002 | 轮询扫码状态 |
-| /api/endfield/characters | POST | 5002 | 扫码后拉取干员数据 |
-| /api/health | GET | 5001/5002 | 健康检查 |
+| /api/hg-to-cred | POST | api-server | 鹰角 Token → cred |
+| /api/skland/binding | POST | api-server | 森空岛绑定列表 |
+| /api/skland/endfield-detail | POST | api-server | 终末地干员详情 |
+| /api/qr/create | POST | qr-server | 生成扫码二维码 |
+| /api/qr/status/<scanId> | GET | qr-server | 轮询扫码状态 |
+| /api/endfield/characters | POST | qr-server | 扫码后拉取干员数据 |
+| /api/health | GET | api-server / qr-server | 健康检查 |
 
 
 安全说明
@@ -193,9 +191,9 @@
 2. 更新 index.html 中所有 ?v= 版本号
 3. 用户端：微信长按右上角「...」→ 强制刷新
 
-### 彩蛋怎么触发？
+### 网页中有彩蛋（?）
 
-同一次会话内连续点击捏捏角色第 100 次。
+自己找找看。
 
 
 目录说明
@@ -208,8 +206,8 @@
 | Talent/ | 天赋图标（png） |
 | vendor/ | 第三方库 |
 | Log/ | 更新日志 |
-| api-server/ | 5001 服务 |
-| qr-server/ | 5002 服务 |
+| api-server/ | Token 转换服务 |
+| qr-server/ | 扫码登录服务 |
 | userdata/ | 云端用户数据（不推送） |
 | backup/ | 索引备份（不推送） |
 | Suggest/ | 用户反馈（不推送） |
