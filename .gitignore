@@ -47,3 +47,31 @@ index.html.bak.*
 
 Thumbs.db
 
+
+
+
+# 服务器环境
+
+.well-known/
+
+fix_install.sh
+
+
+
+# 测试文件
+
+test.html
+
+skland-endfield/
+
+
+
+# Python 缓存
+
+__pycache__/
+
+*.pyc
+
+
+# 构建产物
+dist/
