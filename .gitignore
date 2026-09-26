@@ -75,3 +75,20 @@ __pycache__/
 
 # 构建产物
 dist/
+
+# 账号系统
+api-server/.env
+api-server/userdata/
+
+
+
+# 账号系统敏感文件
+
+account-server/.env
+
+account-server/userdata/
+
+account-server/venv/
+
+account-server/__pycache__/
+
